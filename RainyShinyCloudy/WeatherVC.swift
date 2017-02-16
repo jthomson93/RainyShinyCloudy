@@ -20,24 +20,21 @@ class WeatherVC: UIViewController, UITableViewDelegate, UITableViewDataSource, C
     @IBOutlet weak var currentWeatherTypeLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
     
-    
-    
     var currentWeather: CurrentWeather!
     var forecast: Forecast!
     var forecasts = [Forecast]()
-    var locManager: CLLocationManager!
+
+    let locationManager = CLLocationManager()
+    var currentLocation: CLLocation!
 
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
-        locManager = CLLocationManager()
-        locManager.delegate = self
-        locManager.requestWhenInUseAuthorization()
-        let currentLocation = locManager.location
-        setLat = (currentLocation?.coordinate.latitude)!
-        setLong = (currentLocation?.coordinate.longitude)!
-        
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization() //Request authorisation
+        locationManager.startMonitoringSignificantLocationChanges() //Monitors significant changes
         
         tableView.delegate = self //Data is handled from within the cell
         tableView.dataSource = self
@@ -49,10 +46,7 @@ class WeatherVC: UIViewController, UITableViewDelegate, UITableViewDataSource, C
             {
               self.updateMainUI()
             }
-            
         }
-        
-        
     }
     
     func downloadForecast(completed: @escaping DownloadComplete)
@@ -113,6 +107,17 @@ class WeatherVC: UIViewController, UITableViewDelegate, UITableViewDataSource, C
         currentLocationLabel.text = currentWeather.cityName
         currentWeatherImage.image = UIImage(named: currentWeather.weatherType.capitalized)
         print(currentWeather.weatherType.capitalized)
+    }
+    
+    func locationAuthStatus()
+    {
+        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse //Checks to see if we are authorised to use users location
+        {
+            currentLocation = locationManager.location // If authorised, grab user location
+        } else {
+            locationManager.requestWhenInUseAuthorization() // Else, if not, ask for authorisation
+            locationAuthStatus()
+        }
     }
 
 
