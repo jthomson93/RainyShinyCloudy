@@ -40,13 +40,13 @@ class WeatherVC: UIViewController, UITableViewDelegate, UITableViewDataSource, C
         tableView.dataSource = self
         
         currentWeather = CurrentWeather()
-        currentWeather.downloadWeatherDetails
-        {
-            self.downloadForecast
-            {
-              self.updateMainUI()
-            }
-        }
+        
+    }
+    
+    override func viewDidAppear(_ animated: Bool)
+    {
+        super.viewDidAppear(animated)
+        locationAuthStatus()
     }
     
     func downloadForecast(completed: @escaping DownloadComplete)
@@ -114,6 +114,17 @@ class WeatherVC: UIViewController, UITableViewDelegate, UITableViewDataSource, C
         if CLLocationManager.authorizationStatus() == .authorizedWhenInUse //Checks to see if we are authorised to use users location
         {
             currentLocation = locationManager.location // If authorised, grab user location
+            Location.sharedInstance.latitude = currentLocation.coordinate.latitude
+            Location.sharedInstance.longitude = currentLocation.coordinate.longitude
+            print(Location.sharedInstance.longitude, Location.sharedInstance.latitude)
+            
+            currentWeather.downloadWeatherDetails
+                {
+                    self.downloadForecast
+                        {
+                            self.updateMainUI()
+                    }
+            }
         } else {
             locationManager.requestWhenInUseAuthorization() // Else, if not, ask for authorisation
             locationAuthStatus()
